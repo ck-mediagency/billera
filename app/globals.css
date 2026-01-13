@@ -1,26 +1,100 @@
-@import "tailwindcss";
-
+/* ========== Design Tokens ========== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary: #32c2b6;
+  --bg: #ffffff;
+  --text: #000000;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --card: #ffffff;
+
+  --radius: 14px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ========== Base Reset ========== */
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-arabic), system-ui, sans-serif;
+}
+
+/* ========== Typography ========== */
+h1, h2, h3 {
+  margin: 0;
+  font-weight: 700;
+}
+
+p {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* ========== Layout ========== */
+main {
+  background: var(--bg);
+}
+
+
+/* ========== Cards ========== */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+/* ========== Buttons ========== */
+button {
+  width: 100%;
+  border: none;
+  border-radius: var(--radius);
+  padding: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--primary);
+  color: white;
+}
+
+button.secondary {
+  background: white;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+/* ========== Inputs ========== */
+input,
+select {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* ========== Helpers ========== */
+.text-muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.text-center {
+  text-align: center;
 }
