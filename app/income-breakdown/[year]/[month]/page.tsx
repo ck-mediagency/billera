@@ -203,7 +203,7 @@ export default function IncomeBreakdownMonthPage() {
   useOutsideClick([curBtnRef as any, curPanelRef as any], () => setCurOpen(false), curOpen);
 
   function setPlanPatch(patch: Partial<BreakdownMonthPlan>) {
-    setState((prev) => {
+    setState((prev: ExtendedState) => {
       const st = safeStore((prev as any).incomeBreakdownStore);
       st.plans[ym] = { ...(st.plans[ym] as any), ...patch };
       return { ...prev, incomeBreakdownStore: st };
@@ -251,7 +251,7 @@ export default function IncomeBreakdownMonthPage() {
     const n = String(name || "").trim();
     if (!n) return;
     const id = `cat_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    setState((prev) => {
+    setState((prev: any) => {
       const st = safeStore((prev as any).incomeBreakdownStore);
       st.categories = [...st.categories, { id, name: n }];
       return { ...prev, incomeBreakdownStore: st };
@@ -259,7 +259,7 @@ export default function IncomeBreakdownMonthPage() {
   }
 
   function deleteCategory(catId: string) {
-    setState((prev) => {
+    setState((prev: any) => {
       const st = safeStore((prev as any).incomeBreakdownStore);
       st.categories = st.categories.filter((c) => c.id !== catId);
 
