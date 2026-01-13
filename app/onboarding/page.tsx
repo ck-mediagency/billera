@@ -206,7 +206,8 @@ export default function OnboardingPage() {
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
     ) : (
-      (name || "U").charAt(0).toUpperCase()
+      String(name ?? "U").charAt(0).toUpperCase()
+
     )}
   </div>
 
