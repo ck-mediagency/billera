@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import type { AppState } from "@/lib/types";
-import { loadState, saveState } from "@/lib/storage";
+import { loadState, APPSTATE_CHANGED_EVENT } from "@/lib/storage";
 import { normalizeCur } from "@/lib/fx";
 import { supabase } from "@/lib/supabaseClient";
+import { useRef } from "react";
+
 
 type Bucket = {
   id: string; // uuid
@@ -226,140 +228,112 @@ function BucketCards({
   buckets: Bucket[];
   totalsByBucket: Map<string, number>;
   denomIncome: number;
-
   onAdd: (name: string) => void;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
 }) {
-  const safeDenom = Math.max(0, denomIncome);
-
   return (
     <section style={{ ...CARD_STYLE, marginTop: 12, padding: 14 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-        <div style={{ fontWeight: 900, fontSize: 18 }}>{title}</div>
+      {/* Header مثل المحفظات */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ fontWeight: 900 }}>{title}</div>
+        <div style={{ fontSize: 12, color: "rgba(0,0,0,0.65)" }}>({buckets.length})</div>
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <button
-          type="button"
-          onClick={() => {
-            const n = window.prompt("اسم الصندوق الجديد:");
-            if (n == null) return;
-            const trimmed = n.trim();
-            if (!trimmed) return;
-            onAdd(trimmed);
-          }}
-          style={{
-            width: "100%",
-            borderRadius: 18,
-            padding: "16px 0",
-            border: "none",
-            cursor: "pointer",
-            fontWeight: 900,
-            fontSize: 18,
-            color: "white",
-            background: "linear-gradient(180deg, rgba(0,132,132,1) 0%, rgba(0,110,110,1) 100%)",
-            boxShadow: "0 14px 26px rgba(0,132,132,0.28), inset 0 0 0 1px rgba(255,255,255,0.14)",
-          }}
-        >
-          + إضافة
-        </button>
-      </div>
+      {/* زر إضافة – نفس روح المحفظات */}
+      <button
+        onClick={() => {
+          const n = prompt("اسم التصنيف:");
+          if (!n) return;
+          onAdd(n.trim());
+        }}
+        style={{
+          marginTop: 12,
+          width: "100%",
+          borderRadius: 18,
+          padding: "14px 0",
+          fontWeight: 900,
+          border: "none",
+          background: "var(--primary)",
+          color: "white",
+          cursor: "pointer",
+          boxShadow: "0 10px 24px rgba(0,0,0,0.16)",
+        }}
+      >
+        + إضافة
+      </button>
 
-      <div style={{ marginTop: 12, display: "grid", gap: 12 }}>
+      {/* قائمة التصنيفات */}
+      <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
         {buckets.length === 0 ? (
-          <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.55)" }}>لا يوجد تصنيفات بعد.</div>
+          <div style={{ fontSize: 12, color: "rgba(0,0,0,0.65)" }}>
+            لا يوجد تصنيفات بعد.
+          </div>
         ) : (
           buckets.map((b) => {
-            const val = r2(totalsByBucket.get(b.id) || 0);
-            const pct = safeDenom > 0 ? clamp((val / safeDenom) * 100, 0, 100) : 0;
+            const val = Math.round((totalsByBucket.get(b.id) || 0) * 100) / 100;
+            const pct =
+              denomIncome > 0 ? Math.min(100, Math.round((val / denomIncome) * 100)) : 0;
 
             return (
               <div
                 key={b.id}
                 style={{
+                  background: "white",
                   borderRadius: 18,
                   padding: 14,
-                  background: "rgba(0,0,0,0.03)",
-                  boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.04)",
+                  boxShadow: "0 10px 22px rgba(0,0,0,0.05)",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                  <div style={{ fontWeight: 900, fontSize: 20 }}>{b.name}</div>
-                  <div style={{ fontWeight: 900, fontSize: 18 }}>
+                {/* الاسم + المبلغ */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ fontWeight: 900, fontSize: 16 }}>{b.name}</div>
+                  <div style={{ fontWeight: 900, fontSize: 16 }}>
                     {val} {baseCur}
                   </div>
                 </div>
 
-                <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                {/* النسبة */}
+                <div style={{ fontSize: 12, marginTop: 6, color: "rgba(0,0,0,0.65)" }}>
+                  نسبة من دخل هذا الشهر: {pct}%
+                </div>
+
+                {/* أزرار – نفس المحفظات */}
+                <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
                   <button
-                    type="button"
                     onClick={() => {
-                      const n = window.prompt("عدّل اسم الصندوق:", b.name);
-                      if (n == null) return;
-                      const trimmed = n.trim();
-                      if (!trimmed) return;
-                      onRename(b.id, trimmed);
+                      const n = prompt("تعديل الاسم:", b.name);
+                      if (!n) return;
+                      onRename(b.id, n.trim());
                     }}
                     style={{
-                      borderRadius: 12,
+                      borderRadius: 14,
                       padding: "10px 12px",
-                      border: "none",
-                      cursor: "pointer",
                       fontWeight: 900,
-                      color: "rgba(0,0,0,0.86)",
+                      border: "none",
                       background: "rgba(0,0,0,0.08)",
-                      boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.10)",
+                      cursor: "pointer",
                     }}
                   >
-                    تعديل الاسم
+                    تعديل
                   </button>
 
                   <button
-                    type="button"
                     onClick={() => {
-                      const ok = window.confirm(
-                        "أكيد بدك تحذف هاد الصندوق؟\n\nرح ينشال الربط (bucketId) من كل العمليات يلي كانت عليه."
-                      );
-                      if (!ok) return;
-                      onDelete(b.id);
+                      if (confirm("حذف التصنيف؟")) onDelete(b.id);
                     }}
                     style={{
-                      borderRadius: 12,
+                      borderRadius: 14,
                       padding: "10px 12px",
-                      border: "none",
-                      cursor: "pointer",
                       fontWeight: 900,
+                      border: "none",
+                      background: "rgba(210,60,60,0.9)",
                       color: "white",
-                      background: "linear-gradient(180deg, rgba(210,60,60,1) 0%, rgba(170,35,35,1) 100%)",
-                      boxShadow: "0 10px 18px rgba(210,60,60,0.18), inset 0 0 0 1px rgba(255,255,255,0.12)",
+                      cursor: "pointer",
                     }}
                   >
                     حذف
                   </button>
-                </div>
-
-                <div
-                  style={{
-                    marginTop: 12,
-                    height: 12,
-                    borderRadius: 999,
-                    background: "rgba(0,0,0,0.08)",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${pct}%`,
-                      background: "linear-gradient(90deg, rgba(50,194,182,0.95) 0%, rgba(50,194,182,0.55) 100%)",
-                      borderRadius: 999,
-                    }}
-                  />
-                </div>
-
-                <div style={{ marginTop: 8, fontSize: 12, fontWeight: 900, color: "rgba(0,0,0,0.55)" }}>
-                  نسبة من دخل هذا الشهر: {Math.round(pct)}%
                 </div>
               </div>
             );
@@ -369,6 +343,7 @@ function BucketCards({
     </section>
   );
 }
+
 
 type DbBucketRow = {
   id: string;
@@ -385,42 +360,57 @@ export default function BucketsPage() {
   // ✅ Supabase status
   const [sbLoading, setSbLoading] = useState(true);
   const [sbError, setSbError] = useState("");
+const [localUserId, setLocalUserId] = useState<string | null>(null);
+const localUserIdRef = useRef<string | null>(null);
+
+
+useEffect(() => {
+  supabase.auth.getSession().then(({ data }) => {
+    const uid = data.session?.user?.id ?? null;
+    localUserIdRef.current = uid;
+    setLocalUserId(uid);
+  });
+}, []);
 
   /** ✅ حمّل من local أولاً (txs/accounts/baseCurrency...) */
   useEffect(() => {
-    const refreshLocal = () => {
-      const s = loadState() as ExtendedState | null;
-      if (s) {
-        setState({
-          ...defaultState(),
-          ...s,
-          incomeBuckets: s.incomeBuckets ?? [],
-          expenseBuckets: s.expenseBuckets ?? [],
-          monthlyGoal: Number.isFinite((s as any).monthlyGoal) ? (s as any).monthlyGoal : (defaultState().monthlyGoal as number),
-        });
-      }
-    };
-
-    refreshLocal();
+  if (!localUserId) {
     setHydrated(true);
+    return;
+  }
 
-    window.addEventListener("focus", refreshLocal);
-    const onVis = () => {
-      if (document.visibilityState === "visible") refreshLocal();
-    };
-    document.addEventListener("visibilitychange", onVis);
+  const refreshLocal = () => {
+    const s = loadState(localUserId) as ExtendedState | null;
+    if (s) {
+      setState({
+        ...defaultState(),
+        ...s,
+        incomeBuckets: s.incomeBuckets ?? [],
+        expenseBuckets: s.expenseBuckets ?? [],
+        monthlyGoal: Number.isFinite((s as any).monthlyGoal)
+          ? (s as any).monthlyGoal
+          : defaultState().monthlyGoal,
+      });
+    }
+  };
 
-    return () => {
-      window.removeEventListener("focus", refreshLocal);
-      document.removeEventListener("visibilitychange", onVis);
-    };
-  }, []);
+  refreshLocal();
 
-  /** ✅ احفظ local */
-  useEffect(() => {
-    if (!hydrated) return;
-    saveState(state as any);
-  }, [state, hydrated]);
+  window.addEventListener(APPSTATE_CHANGED_EVENT, refreshLocal);
+  const onVis = () => {
+    if (document.visibilityState === "visible") refreshLocal();
+  };
+  document.addEventListener("visibilitychange", onVis);
+
+  return () => {
+    window.removeEventListener(APPSTATE_CHANGED_EVENT, refreshLocal);
+    document.removeEventListener("visibilitychange", onVis);
+  };
+}, [localUserId]);
+
+
+
+  
 
   const baseCur = normalizeCur(state.baseCurrency || "USD");
   const today = todayISO();

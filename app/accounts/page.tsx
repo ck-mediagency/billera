@@ -657,8 +657,8 @@ if (sbAccounts.length === 0) {
                         padding: "10px 12px",
                         fontWeight: 900,
                         border: "none",
-                        background: "rgba(0,0,0,0.08)",
-                        color: "#000",
+                        background: "#d23c3ce6",
+                        color: "#ffffff",
                         cursor: "pointer",
                       }}
                     >

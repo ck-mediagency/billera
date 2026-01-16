@@ -7,7 +7,6 @@ import { APPSTATE_CHANGED_EVENT, loadState, saveState } from "@/lib/storage";
 import { IMPORTANT_CURRENCIES, normalizeCur, getAutoRatesToUSD } from "@/lib/fx";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-const [userId, setUserId] = useState<string | null>(null);
 
 
 /** ✅ روابط صاحب التطبيق (عدّلها أنت فقط) */
@@ -365,9 +364,11 @@ export default function SettingsPage() {
   window.location.href = "/login";
 }
   const router = useRouter();
-
+const [userId, setUserId] = useState<string | null>(null);
   const [state, setState] = useState<ExtendedState>(defaultState());
   const [hydrated, setHydrated] = useState(false);
+  const ignoreNextStorageEventRef = useRef(false);
+
 
   // ✅ FX UI state
   const [fxLoading, setFxLoading] = useState(false);
@@ -402,6 +403,11 @@ export default function SettingsPage() {
   useEffect(() => {
   // ✅ keep local app state (accounts/txs/...etc) from localStorage
   const refreshLocal = () => {
+      if (ignoreNextStorageEventRef.current) {
+    ignoreNextStorageEventRef.current = false;
+    return;
+  }
+
     const s = loadState(userId) as ExtendedState | null; // ✅ صار حسب userId
     if (s) {
       const ib = (s as any).incomeBreakdown as IncomeBreakdownState | undefined;
@@ -460,6 +466,8 @@ export default function SettingsPage() {
 
   useEffect(() => {
   if (!hydrated) return;
+    ignoreNextStorageEventRef.current = true;
+
   saveState(state as any, userId);
 }, [state, hydrated, userId]);
 
