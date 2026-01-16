@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import BottomNav from "@/components/BottomNav";
 import type { AppState } from "@/lib/types";
 import { loadState, saveState } from "@/lib/storage";
-import { normalizeCur } from "@/lib/fx";
+import { normalizeCur, txValueInBase, roundMoney } from "@/lib/fx";
 import { supabase } from "@/lib/supabaseClient";
 
 type AccountRow = {
@@ -132,6 +132,7 @@ function Card({ children }: { children: React.ReactNode }) {
 }
 
 export default function HomePage() {
+  
   const [state, setState] = useState<ExtendedState>(defaultState());
   const [hydrated, setHydrated] = useState(false);
     // ✅ Accounts من Supabase (للرئيسية فقط)
@@ -141,6 +142,8 @@ export default function HomePage() {
 
   // ✅ أهم شي: نخزن/نقرأ حسب المستخدم
   const [userId, setUserId] = useState<string | null>(null);
+  const userIdRef = useRef<string | null>(null);
+
 
   // ✅ helper: تحميل من localStorage حسب userId
   function refreshFromStorage(uid: string | null) {
@@ -170,6 +173,7 @@ export default function HomePage() {
         if (!alive) return;
 
         setUserId(uid);
+        userIdRef.current = uid; // ⬅️ مهم جداً
         refreshFromStorage(uid);
         setHydrated(true);
       } catch {
@@ -184,10 +188,13 @@ export default function HomePage() {
     init();
 
     // ✅ تحديث عند الرجوع للتبويب/النافذة
-    const onFocus = () => refreshFromStorage(userId);
-    const onVis = () => {
-      if (document.visibilityState === "visible") refreshFromStorage(userId);
-    };
+    const onFocus = () => refreshFromStorage(userIdRef.current);
+const onVis = () => {
+  if (document.visibilityState === "visible") {
+    refreshFromStorage(userIdRef.current);
+  }
+};
+
 
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVis);
@@ -250,29 +257,26 @@ export default function HomePage() {
   const thisMonthKey = monthKeyFromISO(today);
 
   const monthTotals = useMemo(() => {
-    let income = 0;
-    let expense = 0;
+  let income = 0;
+  let expense = 0;
 
-    for (const t of state.txs ?? []) {
-      if (!t.dateISO) continue;
-      if (monthKeyFromISO(t.dateISO) !== thisMonthKey) continue;
+  for (const t of state.txs ?? []) {
+    if (!t.dateISO) continue;
+    if (monthKeyFromISO(t.dateISO) !== thisMonthKey) continue;
 
-      const v = Number.isFinite(t.baseAmount as any)
-        ? (t.baseAmount as number)
-        : normalizeCur((t as any).currency) === baseCur
-        ? Number((t as any).amount)
-        : 0;
+    const v = txValueInBase(state as any, t as any); // ✅ التحويل الصحيح لأي عملة
 
-      if (t.kind === "income") income += v;
-      else expense += v;
-    }
+    if (t.kind === "income") income += v;
+    else expense += v;
+  }
 
-    return {
-      income: r2(income),
-      expense: r2(expense),
-      net: r2(income - expense),
-    };
-  }, [state.txs, thisMonthKey, baseCur]);
+  return {
+    income: roundMoney(income),
+    expense: roundMoney(expense),
+    net: roundMoney(income - expense),
+  };
+}, [state, thisMonthKey]);
+
 
   const spendingPercent = useMemo(() => {
     const inc = monthTotals.income;
@@ -306,6 +310,26 @@ export default function HomePage() {
 
   const hasAccounts = accountsSB.length > 0;
   const monthLabel = monthLabelFromKey(thisMonthKey);
+if (!hydrated) {
+  return (
+    <main
+      dir="rtl"
+      style={{
+        padding: 16,
+        paddingBottom: 120,
+        maxWidth: 560,
+        margin: "0 auto",
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #F2F5F7 0%, #EEF2F5 55%, #EEF2F5 100%)",
+        display: "grid",
+        placeItems: "center",
+      }}
+    >
+      <div style={{ fontWeight: 900, color: "rgba(0,0,0,0.65)" }}>جاري تحميل بياناتك…</div>
+      <BottomNav />
+    </main>
+  );
+}
 
   return (
     <main

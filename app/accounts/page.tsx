@@ -510,6 +510,26 @@ if (sbAccounts.length === 0) {
     setState((prev) => ({ ...prev, accounts: (prev.accounts ?? []).filter((x) => x.id !== id) }));
     await refetchAccounts();
   }
+if (!hydrated) {
+  return (
+    <main
+      dir="rtl"
+      style={{
+        padding: 16,
+        paddingBottom: 120,
+        maxWidth: 560,
+        margin: "0 auto",
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #F2F5F7 0%, #EEF2F5 55%, #EEF2F5 100%)",
+        display: "grid",
+        placeItems: "center",
+      }}
+    >
+      <div style={{ fontWeight: 900, color: "rgba(0,0,0,0.65)" }}>جاري تحميل بياناتك…</div>
+      <BottomNav />
+    </main>
+  );
+}
 
   return (
     <main

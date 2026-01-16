@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import type { AppState } from "@/lib/types";
 import { loadState, APPSTATE_CHANGED_EVENT } from "@/lib/storage";
-import { normalizeCur } from "@/lib/fx";
+import { normalizeCur, txValueInBase, roundMoney } from "@/lib/fx";
 import { supabase } from "@/lib/supabaseClient";
 import { useRef } from "react";
 
@@ -416,13 +416,7 @@ useEffect(() => {
   const today = todayISO();
   const thisMonthKey = monthKeyFromISO(today);
 
-  function baseValue(t: any): number {
-    if (Number.isFinite(t?.baseAmount)) return Number(t.baseAmount);
-    const cur = normalizeCur(t?.currency || baseCur);
-    const amt = Number(t?.amount);
-    if (cur === baseCur && Number.isFinite(amt)) return amt;
-    return 0;
-  }
+  
 
   /** ✅ تحميل + Migration للـ buckets */
   useEffect(() => {
@@ -577,12 +571,12 @@ if (sbBuckets.length === 0) {
       if (!t.dateISO) continue;
       if (monthKeyFromISO(t.dateISO) !== thisMonthKey) continue;
 
-      const v = baseValue(t);
+      const v =  txValueInBase(state as any, t as any);
       if (t.kind === "income") income += v;
       else expense += v;
     }
 
-    return { income: r2(income), expense: r2(expense) };
+return { income: roundMoney(income), expense: roundMoney(expense) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.txs, thisMonthKey, baseCur]);
 
@@ -600,7 +594,7 @@ if (sbBuckets.length === 0) {
       const bid = (t as any).bucketId as string | undefined;
       if (!bid) continue;
 
-      const v = baseValue(t);
+      const v =  txValueInBase(state as any, t as any);
       map.set(bid, (map.get(bid) || 0) + v);
     }
     return map;
@@ -619,7 +613,7 @@ if (sbBuckets.length === 0) {
       const bid = (t as any).bucketId as string | undefined;
       if (!bid) continue;
 
-      const v = baseValue(t);
+      const v =  txValueInBase(state as any, t as any);
       map.set(bid, (map.get(bid) || 0) + v);
     }
     return map;
@@ -764,6 +758,26 @@ if (sbBuckets.length === 0) {
 
     refreshBucketsFromDB();
   }
+if (!hydrated) {
+  return (
+    <main
+      dir="rtl"
+      style={{
+        padding: 16,
+        paddingBottom: 120,
+        maxWidth: 560,
+        margin: "0 auto",
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #F2F5F7 0%, #EEF2F5 55%, #EEF2F5 100%)",
+        display: "grid",
+        placeItems: "center",
+      }}
+    >
+      <div style={{ fontWeight: 900, color: "rgba(0,0,0,0.65)" }}>جاري تحميل بياناتك…</div>
+      <BottomNav />
+    </main>
+  );
+}
 
   return (
     <main
