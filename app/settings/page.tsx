@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
 
+
 /** ✅ روابط صاحب التطبيق (عدّلها أنت فقط) */
 const OWNER_SOCIAL_LINKS = {
   instagram: "https://www.instagram.com/ibrahim.jab99/",
@@ -397,6 +398,8 @@ const [userId, setUserId] = useState<string | null>(null);
   useOutsideClick([curBtnRef as any, curPanelRef as any], () => setCurOpen(false), curOpen);
 
   useEffect(() => {
+      if (!userId) return;
+
   // ✅ keep local app state (accounts/txs/...etc) from localStorage
   const refreshLocal = () => {
       if (ignoreNextStorageEventRef.current) {
@@ -462,6 +465,7 @@ const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
   if (!hydrated) return;
+    if (!userId) return; // ✅ لا تحفظ على guest
     ignoreNextStorageEventRef.current = true;
 
   saveState(state as any, userId);
@@ -682,6 +686,28 @@ setState((prev) => ({
   const job = jobTitle || "—";
   const about = bio || "—";
   const avatar = avatarDataUrl || "";
+
+    // ✅ لا نعرض UI ولا نعمل أي شيء قبل ما يجي userId (حتى ما يصير USD ثم EUR)
+  if (!userId) {
+    return (
+      <main
+        dir="rtl"
+        style={{
+          padding: 16,
+          paddingBottom: 140,
+          maxWidth: 560,
+          margin: "0 auto",
+          minHeight: "100vh",
+          background: "linear-gradient(180deg, #F2F5F7 0%, #EEF2F5 55%, #EEF2F5 100%)",
+          display: "grid",
+          placeItems: "center",
+        }}
+      >
+        <div style={{ fontWeight: 900, color: "rgba(0,0,0,0.65)" }}>جاري تحميل بياناتك…</div>
+        <BottomNav />
+      </main>
+    );
+  }
 
   return (
     <main
