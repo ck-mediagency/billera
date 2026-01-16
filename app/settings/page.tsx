@@ -299,7 +299,6 @@ function SocialFooter({ items }: { items: { label: string; kind: "ig" | "yt" | "
     <div
       style={{
         marginTop: 24,
-        paddingBottom: 100, // مساحة كافية قبل BottomNav
         display: "flex",
         justifyContent: "center",
         paddingInline: 14,
@@ -689,7 +688,7 @@ setState((prev) => ({
       dir="rtl"
       style={{
         padding: 16,
-        paddingBottom: 240,
+        paddingBottom: 50,
         maxWidth: 560,
         margin: "0 auto",
         minHeight: "100vh",
