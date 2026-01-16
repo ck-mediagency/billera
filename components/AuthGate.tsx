@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
-const PUBLIC_PATHS = ["/auth/callback"]; // نخلي callback عام فقط
-const ONBOARDING_PATH = "/onboarding";
+const PUBLIC_PATHS = ["/auth/callback", "/reset-password"]; // صفحات عامة
+const SETUP_PATH = "/setup";
 const LOGIN_PATH = "/login";
+
+// ✅ صفحات مسموحة أثناء الإعداد
+const SETUP_ALLOWED_PATHS = ["/setup", "/accounts", "/buckets"];
 
 export default function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -19,7 +22,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     async function check() {
       setReady(false);
 
-      // callback دايمًا مسموح
+      // ✅ صفحات عامة دايمًا مسموحة
       if (PUBLIC_PATHS.some((p) => pathname?.startsWith(p))) {
         if (alive) setReady(true);
         return;
@@ -30,7 +33,6 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
       // ✅ إذا مو مسجل دخول
       if (!session) {
-        // لو هو أصلاً على /login خليّه
         if (pathname?.startsWith(LOGIN_PATH)) {
           if (alive) setReady(true);
           return;
@@ -39,30 +41,31 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const userId = session.user.id;
-
-      // ✅ افحص هل عنده profile + settings
-      const [{ data: prof }, { data: st }] = await Promise.all([
-        supabase.from("profiles").select("user_id").eq("user_id", userId).maybeSingle(),
-        supabase.from("user_settings").select("user_id").eq("user_id", userId).maybeSingle(),
+      // ✅ مسجل دخول: قرر setup ولا لا (حسب Supabase)
+      const [accRes, buckRes] = await Promise.all([
+        supabase.from("accounts").select("id", { count: "exact", head: true }),
+        supabase.from("buckets").select("id", { count: "exact", head: true }),
       ]);
 
-      const isComplete = !!prof && !!st;
+      const hasAccounts = (accRes.count ?? 0) > 0;
+      const hasBuckets = (buckRes.count ?? 0) > 0;
+      const needSetup = !(hasAccounts && hasBuckets);
 
-      // ✅ إذا الحساب مو مكتمل → لازم onboarding
-      if (!isComplete) {
-        if (!pathname?.startsWith(ONBOARDING_PATH)) {
-          router.replace(ONBOARDING_PATH);
+      if (needSetup) {
+        // ✅ اسمح فقط بصفحات الإعداد المطلوبة
+        const allowed = SETUP_ALLOWED_PATHS.some((p) => pathname?.startsWith(p));
+        if (!allowed) {
+          router.replace(SETUP_PATH);
           return;
         }
         if (alive) setReady(true);
         return;
       }
 
-      // ✅ إذا الحساب مكتمل:
-      // امنع /login و /onboarding
-      if (pathname?.startsWith(LOGIN_PATH) || pathname?.startsWith(ONBOARDING_PATH)) {
-        router.replace("/"); // التطبيق
+      // ✅ إذا ما بحاجة setup:
+      // امنع /login و /setup
+      if (pathname?.startsWith(LOGIN_PATH) || pathname?.startsWith(SETUP_PATH)) {
+        router.replace("/");
         return;
       }
 
@@ -71,7 +74,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
     check();
 
-    // ✅ مهم: لو صار sign in / sign out أثناء فتح الموقع
+    // ✅ إذا صار sign in / sign out أثناء فتح الموقع
     const { data: sub } = supabase.auth.onAuthStateChange(() => {
       check();
     });

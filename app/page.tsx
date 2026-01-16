@@ -7,6 +7,13 @@ import { loadState, saveState } from "@/lib/storage";
 import { normalizeCur } from "@/lib/fx";
 import { supabase } from "@/lib/supabaseClient";
 
+type AccountRow = {
+  id: string;
+  name: string;
+  currency: string;
+};
+
+
 type ExtendedState = AppState & {
   incomeBuckets?: any[];
   expenseBuckets?: any[];
@@ -127,6 +134,10 @@ function Card({ children }: { children: React.ReactNode }) {
 export default function HomePage() {
   const [state, setState] = useState<ExtendedState>(defaultState());
   const [hydrated, setHydrated] = useState(false);
+    // ✅ Accounts من Supabase (للرئيسية فقط)
+  const [accountsSB, setAccountsSB] = useState<AccountRow[]>([]);
+  const [accLoading, setAccLoading] = useState(false);
+
 
   // ✅ أهم شي: نخزن/نقرأ حسب المستخدم
   const [userId, setUserId] = useState<string | null>(null);
@@ -188,6 +199,38 @@ export default function HomePage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // ✅ جلب المحافظ من Supabase (حتى ما تختفي)
+  useEffect(() => {
+    let alive = true;
+
+    async function fetchAccounts() {
+      if (!userId) {
+        setAccountsSB([]);
+        return;
+      }
+
+      setAccLoading(true);
+
+      const { data, error } = await supabase
+        .from("accounts")
+        .select("id,name,currency")
+        .eq("user_id", userId)
+        .order("name", { ascending: true });
+
+      if (!alive) return;
+
+      if (!error) setAccountsSB((data ?? []) as AccountRow[]);
+      setAccLoading(false);
+    }
+
+    fetchAccounts();
+
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
+
+
 
   // ✅ إذا تغيّر userId (تسجيل دخول/خروج) اقرأ state تبعه فوراً
   useEffect(() => {
@@ -248,9 +291,9 @@ export default function HomePage() {
     return clampPct(Math.round((monthTotals.income / target) * 100));
   }, [monthTotals.income, target]);
 
-  const balances = useMemo(() => {
+    const balances = useMemo(() => {
     const map = new Map<string, number>();
-    for (const a of state.accounts ?? []) map.set(a.id, 0);
+    for (const a of accountsSB) map.set(a.id, 0);
 
     for (const t of state.txs ?? []) {
       const delta = t.kind === "income" ? t.amount : -t.amount;
@@ -258,9 +301,10 @@ export default function HomePage() {
     }
 
     return map;
-  }, [state.accounts, state.txs]);
+  }, [accountsSB, state.txs]);
 
-  const hasAccounts = (state.accounts ?? []).length > 0;
+
+  const hasAccounts = accountsSB.length > 0;
   const monthLabel = monthLabelFromKey(thisMonthKey);
 
   return (
@@ -286,10 +330,10 @@ export default function HomePage() {
 
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <a href="/transactions" style={fancyLinkStyle()}>
-            الأرشيف
+            المعاملات
           </a>
-          <a href="/accounts" style={fancyLinkStyle()}>
-            الحسابات
+          <a href="/buckets" style={fancyLinkStyle()}>
+            التصنيفات
           </a>
         </div>
       </header>
@@ -332,71 +376,24 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section style={{ ...CARD_STYLE, marginTop: 12, padding: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <div style={{ fontWeight: 900 }}>هذا الشهر</div>
-          <a href="/add" className="text-primary" style={{ fontWeight: 900, textDecoration: "none" }}>
-            + إضافة
-          </a>
-        </div>
-
-        <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-              <div className="text-muted" style={{ fontSize: 12 }}>
-                الدخل
-              </div>
-              <div style={{ fontWeight: 900, fontSize: 12 }}>
-                {monthTotals.income} {baseCur}
-              </div>
-            </div>
-
-            <div style={{ marginTop: 6, height: 8, borderRadius: 999, background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${incomeFillPercent}%`, background: "var(--primary)", opacity: 0.45 }} />
-            </div>
-
-            {target > 0 ? (
-              <div className="text-muted" style={{ fontSize: 11, marginTop: 6 }}>
-                الهدف الشهري: {target} {baseCur} · تحقق: {incomeFillPercent}%
-              </div>
-            ) : (
-              <div className="text-muted" style={{ fontSize: 11, marginTop: 6 }}>
-                حدّد هدف الدخل من صفحة الإعدادات ليظهر التقدّم هنا.
-              </div>
-            )}
-          </div>
-
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-              <div className="text-muted" style={{ fontSize: 12 }}>
-                الصرف
-              </div>
-              <div style={{ fontWeight: 900, fontSize: 12 }}>
-                {monthTotals.expense} {baseCur}
-              </div>
-            </div>
-            <div style={{ marginTop: 6, height: 8, borderRadius: 999, background: "rgba(0,0,0,0.06)", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${spendingPercent}%`, background: "var(--primary)" }} />
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       <section style={{ ...CARD_STYLE, marginTop: 12, marginBottom: 12, padding: 14 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <div style={{ fontWeight: 900 }}>الحسابات</div>
+          <div style={{ fontWeight: 900 }}>المحفظات</div>
           <a href="/accounts" className="text-primary" style={{ fontWeight: 900, textDecoration: "none" }}>
             إدارة
           </a>
         </div>
 
-        {!hasAccounts ? (
+                {!hasAccounts ? (
           <div className="text-muted" style={{ marginTop: 12, fontSize: 12 }}>
-            لا يوجد حسابات بعد. افتح “الحسابات” لإضافة حساب.
+            {accLoading ? "جاري تحميل المحفظات..." : "لا يوجد محفظات بعد. افتح “المحفظات” لإضافة محفظة."}
           </div>
         ) : (
+
           <div style={{ marginTop: 12 }}>
-            {(state.accounts ?? []).map((a, idx) => {
+            {accountsSB.map((a, idx) => {
               const cur = normalizeCur(a.currency);
               const bal = r2(balances.get(a.id) || 0);
 
@@ -415,7 +412,7 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  {idx !== (state.accounts ?? []).length - 1 && <div style={{ height: 1, background: "rgba(0,0,0,0.05)" }} />}
+                  {idx !== accountsSB.length - 1 && <div style={{ height: 1, background: "rgba(0,0,0,0.05)" }} />}
                 </div>
               );
             })}
@@ -444,7 +441,7 @@ export default function HomePage() {
           >
             <div style={{ display: "grid", gap: 4 }}>
               <div style={{ fontWeight: 900 }}>تقسيم نظري للمدخول</div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.55)" }}>تخطيط شهري بدون تأثير على الحسابات</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.55)" }}>التخطيط الشهري الخاص بك</div>
             </div>
 
             <div
@@ -464,28 +461,7 @@ export default function HomePage() {
         </div>
       </Card>
 
-      <section style={{ marginTop: 14, display: "grid", gap: 10 }}>
-        <a
-          href="/transactions"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            padding: "14px 14px",
-            borderRadius: 18,
-            textDecoration: "none",
-            fontWeight: 900,
-            color: "rgba(0,0,0,0.82)",
-            background: "white",
-            border: "none",
-            boxShadow: "0 10px 26px rgba(0,0,0,0.06)",
-          }}
-        >
-          عرض الأرشيف الشهري
-          <span style={{ opacity: 0.6 }}>›</span>
-        </a>
-      </section>
+      
 
       <a
         href="/add"

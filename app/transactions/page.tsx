@@ -774,7 +774,7 @@ export default function TransactionsArchivePage() {
 
       const items = Array.from(map.entries()).map(([bucketId, amount]) => ({
         bucketId,
-        name: bucketId === "no_bucket" ? "بدون صندوق" : nameById.get(bucketId) || "صندوق (محذوف)",
+        name: bucketId === "no_bucket" ? "بدون تصنيف" : nameById.get(bucketId) || "صندوق (محذوف)",
         amount: r2(amount),
       }));
 
@@ -958,7 +958,7 @@ export default function TransactionsArchivePage() {
 
   const bucketOptions = useMemo(() => {
     const buckets = tab === "income" ? state.incomeBuckets ?? [] : state.expenseBuckets ?? [];
-    return [{ id: "no_bucket", name: "بدون صندوق" }, ...buckets.map((b: any) => ({ id: String(b.id), name: b.name }))];
+    return [{ id: "no_bucket", name: "بدون تصنيف" }, ...buckets.map((b: any) => ({ id: String(b.id), name: b.name }))];
   }, [tab, state.incomeBuckets, state.expenseBuckets]);
 
   const monthTxsFinal = useMemo(() => {
@@ -1225,7 +1225,7 @@ export default function TransactionsArchivePage() {
                   </div>
                 );
               })}
-              {breakdownBoth.expense.items.length === 0 && <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.45)" }}>لا يوجد صناديق صرف بهذا الشهر.</div>}
+              {breakdownBoth.expense.items.length === 0 && <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.45)" }}>لا يوجد صناديق صرف .</div>}
             </div>
           </div>
 
@@ -1271,7 +1271,7 @@ export default function TransactionsArchivePage() {
                   </div>
                 );
               })}
-              {breakdownBoth.income.items.length === 0 && <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.45)" }}>لا يوجد صناديق دخل بهذا الشهر.</div>}
+              {breakdownBoth.income.items.length === 0 && <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.45)" }}>لا يوجد صناديق دخل  .</div>}
             </div>
           </div>
         </div>
@@ -1306,8 +1306,8 @@ export default function TransactionsArchivePage() {
           <div style={{ marginTop: 12, display: "grid", gap: 12 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               <MultiSelect
-                label="الحساب"
-                placeholder="اختر حساب/حسابات"
+                label="المحفظة"
+                placeholder="اختر محفظة/محفظات"
                 options={accountOptions}
                 selected={filters.accountIds}
                 onChange={(next) => setFilters((p) => ({ ...p, accountIds: next }))}
@@ -1324,8 +1324,8 @@ export default function TransactionsArchivePage() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               <MultiSelect
-                label="الصندوق"
-                placeholder="اختر صندوق/صناديق"
+                label="التصنيف"
+                placeholder="اختر تصنيف/تصنيفات"
                 options={bucketOptions}
                 selected={filters.bucketIds}
                 onChange={(next) => setFilters((p) => ({ ...p, bucketIds: next }))}
@@ -1486,7 +1486,7 @@ export default function TransactionsArchivePage() {
 
           {monthTxsFinal.length === 0 && (
             <div className="text-muted" style={{ fontSize: 12, fontWeight: 900 }}>
-              ما في نتائج حسب الفلاتر الحالية.
+              لا يوجد نتائج حسب الفلاتر الحالية.
             </div>
           )}
         </div>
@@ -1576,9 +1576,9 @@ export default function TransactionsArchivePage() {
               </div>
 
               <div style={fieldWrap()}>
-                <div style={labelStyle()}>الحساب</div>
+                <div style={labelStyle()}>المحفظة</div>
                 <select value={editForm.accountId} onChange={(e) => setEditForm((p: any) => ({ ...p, accountId: e.target.value }))} style={inputStyle()}>
-                  <option value="">— اختر حساب —</option>
+                  <option value="">— اختر محفظة —</option>
                   {(state.accounts ?? []).map((a: any) => (
                     <option key={a.id} value={a.id}>
                       {a.name} · {normalizeCur(a.currency)}
@@ -1598,9 +1598,9 @@ export default function TransactionsArchivePage() {
               </div>
 
               <div style={fieldWrap()}>
-                <div style={labelStyle()}>الصندوق</div>
+                <div style={labelStyle()}>التصنيف</div>
                 <select value={editForm.bucketId} onChange={(e) => setEditForm((p: any) => ({ ...p, bucketId: e.target.value }))} style={inputStyle()}>
-                  <option value="no_bucket">بدون صندوق</option>
+                  <option value="no_bucket">بدون تصنيف</option>
                   {(editForm.kind === "income" ? state.incomeBuckets ?? [] : state.expenseBuckets ?? []).map((b: any) => (
                     <option key={b.id} value={b.id}>
                       {b.name}

@@ -673,7 +673,7 @@ export default function SettingsPage() {
       <header style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: 0.2, color: "#000" }}>الإعدادات</div>
-          <div style={{ fontSize: 12, marginTop: 4, color: "rgba(0,0,0,0.65)" }}>تفضيلات + ملفك</div>
+          
         </div>
 
         <a href="/" style={topLinkStyle()}>
@@ -1075,7 +1075,7 @@ export default function SettingsPage() {
 
       <div style={{ height: 14 }} />
 <div style={{ height: 14 }} />
-
+{/*
 <Card>
   <div style={{ padding: 14 }}>
     <div style={{ fontWeight: 900, fontSize: 14, color: "#000", marginBottom: 10 }}>اللغة</div>
@@ -1092,7 +1092,7 @@ export default function SettingsPage() {
       </button>
     </div>
   </div>
-</Card>
+</Card>*/}
 <button
   onClick={logout}
   style={{

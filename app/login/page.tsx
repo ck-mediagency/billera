@@ -1,13 +1,38 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { loadState } from "@/lib/storage";
+import type { AppState } from "@/lib/types";
 
 const ACCENT = "#5BB9B4";
 
 type MsgState = { type: "success" | "warn" | "error"; text: string } | null;
 
+type ExtendedState = AppState & {
+  incomeBuckets?: { id: string; name: string; percent?: number }[];
+  expenseBuckets?: { id: string; name: string; percent?: number }[];
+  onboardingDone?: boolean;
+};
+
+function getSiteUrl() {
+  // ✅ يشتغل على localhost وعلى الدومين الحقيقي بدون تعديل يدوي
+  if (typeof window === "undefined") return "http://localhost:3000";
+  return window.location.origin;
+}
+
+function shouldGoToSetup(s: ExtendedState | null | undefined) {
+  const accountsCount = (s?.accounts ?? []).length;
+  const catsCount = ((s?.incomeBuckets ?? []).length + (s?.expenseBuckets ?? []).length);
+
+  // إذا ما في محافظ أو ما في تصنيفات → لازم setup
+  return accountsCount === 0 || catsCount === 0 || !s?.onboardingDone;
+}
+
 export default function LoginPage() {
+  const router = useRouter();
+
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,16 +62,21 @@ export default function LoginPage() {
           return;
         }
 
+        // ✅ بعد تسجيل الدخول: قرر وين تروح
+        const s = (loadState() as ExtendedState) ?? null;
+        router.replace(shouldGoToSetup(s) ? "/setup" : "/");
         setLoading(false);
         return;
       }
 
       // ✅ SIGN UP
+      const siteUrl = getSiteUrl();
+
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
         options: {
-          emailRedirectTo: "http://localhost:3000/auth/callback",
+          emailRedirectTo: `${siteUrl}/auth/callback`,
         },
       });
 
@@ -89,8 +119,10 @@ export default function LoginPage() {
     setLoading(true);
     setMsg(null);
 
+    const siteUrl = getSiteUrl();
+
     const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-      redirectTo: "http://localhost:3000/reset-password",
+      redirectTo: `${siteUrl}/reset-password`,
     });
 
     if (error) {
@@ -184,7 +216,7 @@ export default function LoginPage() {
           }}
         />
 
-        {/* ✅ الزر هون بالضبط (بيظهر فقط بوضع تسجيل الدخول) */}
+        {/* ✅ زر نسيت كلمة المرور (يظهر فقط بوضع تسجيل الدخول) */}
         {mode === "signin" && (
           <button
             type="button"
@@ -216,7 +248,10 @@ export default function LoginPage() {
             padding: 12,
             borderRadius: 14,
             border: "1px solid transparent",
-            background: loading || !email || (mode === "signup" ? password.length < 6 : password.length < 1) ? "#D1D5DB" : ACCENT,
+            background:
+              loading || !email || (mode === "signup" ? password.length < 6 : password.length < 1)
+                ? "#D1D5DB"
+                : ACCENT,
             color: "#fff",
             fontWeight: 900,
             cursor: loading ? "not-allowed" : "pointer",
