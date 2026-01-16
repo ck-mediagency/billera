@@ -106,7 +106,7 @@ export default function SetupPage() {
                 textAlign: "center",
               }}
             >
-              {ready ? " جاهز — اضغط (ابدأ الاستخدام)" : "أكمل المحفظات والتصنيفات لتبدأ استخدام التطبيق"}
+              {ready ? " جاهز — اضغط (ابدأ الاستخدام)" : "أكمل الخطوات  لتبدأ استخدام التطبيق"}
             </div>
           </div>
 
@@ -141,7 +141,7 @@ export default function SetupPage() {
             </button>
 
             <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.55)", textAlign: "center" }}>
-              {ready ? "هيك صار التطبيق جاهز." : "لم يتم إضافة محافظ وتصنيفات بعد."}
+              {ready ? "هيك صار التطبيق جاهز." : "لم يتم إضافة محفظات وتصنيفات بعد."}
             </div>
           </div>
 
