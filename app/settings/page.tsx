@@ -295,18 +295,14 @@ function SocialFooter({ items }: { items: { label: string; kind: "ig" | "yt" | "
 
   if (!items.length) return null;
 
-  return (
+   return (
     <div
       style={{
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: navH + 10,
-        zIndex: 80,
+        marginTop: 24,
+        paddingBottom: 100, // مساحة كافية قبل BottomNav
         display: "flex",
         justifyContent: "center",
-        padding: "0 14px",
-        pointerEvents: "none",
+        paddingInline: 14,
       }}
     >
       <div
@@ -317,17 +313,18 @@ function SocialFooter({ items }: { items: { label: string; kind: "ig" | "yt" | "
           boxShadow: "0 18px 50px rgba(0,0,0,0.14)",
           border: "1px solid rgba(0,0,0,0.06)",
           backdropFilter: "blur(10px)",
-          padding: "10px 12px",
+          padding: "12px 14px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 10,
-          pointerEvents: "auto",
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 2, textAlign: "right" }}>
           <div style={{ fontWeight: 900, fontSize: 12, color: "#000" }}>تابعنا</div>
-          <div style={{ fontWeight: 800, fontSize: 11, color: "rgba(0,0,0,0.55)" }}> شاركنا رأيك بتعليق </div>
+          <div style={{ fontWeight: 800, fontSize: 11, color: "rgba(0,0,0,0.55)" }}>
+            شاركنا رأيك بتعليق
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
