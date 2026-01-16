@@ -268,7 +268,7 @@ function BucketCards({
 
       <div style={{ marginTop: 12, display: "grid", gap: 12 }}>
         {buckets.length === 0 ? (
-          <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.55)" }}>لا يوجد صناديق بعد.</div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.55)" }}>لا يوجد تصنيفات بعد.</div>
         ) : (
           buckets.map((b) => {
             const val = r2(totalsByBucket.get(b.id) || 0);
@@ -543,7 +543,7 @@ if (sbBuckets.length === 0) {
         setSbLoading(false);
       } catch (e: any) {
         if (!alive) return;
-        setSbError(e?.message || "فشل تحميل الصناديق من Supabase");
+        setSbError(e?.message || "فشل تحميل التصنيفات من Supabase");
         setSbLoading(false);
       }
     }
@@ -791,7 +791,7 @@ if (sbBuckets.length === 0) {
 
       <header style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 900 }}>الصناديق</div>
+          <div style={{ fontSize: 22, fontWeight: 900 }}>التصنيفات</div>
           <div style={{ fontSize: 12, marginTop: 4, color: "rgba(0,0,0,0.65)", fontWeight: 800 }}>
             {baseCur} · {thisMonthKey}
           </div>
@@ -799,7 +799,7 @@ if (sbBuckets.length === 0) {
           {/* ✅ Supabase status */}
           {sbLoading ? (
             <div style={{ fontSize: 12, marginTop: 6, color: "rgba(0,0,0,0.55)", fontWeight: 800 }}>
-              جاري تحميل الصناديق…
+              جاري تحميل التصنيفات..
             </div>
           ) : sbError ? (
             <div style={{ fontSize: 12, marginTop: 6, color: "rgba(180,0,0,0.85)", fontWeight: 900 }}>
@@ -838,17 +838,17 @@ if (sbBuckets.length === 0) {
 
       {showExpenses ? (
         <div style={{ marginTop: 12 }}>
-          <CompareBarsLikeYear title="مقارنة المصاريف" subtitle="أعلى 5 صناديق هذا الشهر" items={topExpenseItems} maxY={maxYExpenses} baseCur={baseCur} />
+          <CompareBarsLikeYear title="مقارنة المصاريف" subtitle="أعلى 5 تصنيفات هذا الشهر" items={topExpenseItems} maxY={maxYExpenses} baseCur={baseCur} />
         </div>
       ) : (
         <div style={{ marginTop: 12 }}>
-          <CompareBarsLikeYear title="مقارنة الدخل" subtitle="أعلى 5 صناديق هذا الشهر" items={topIncomeItems} maxY={maxYIncome} baseCur={baseCur} />
+          <CompareBarsLikeYear title="مقارنة الدخل" subtitle="أعلى 5 تصنيفات هذا الشهر" items={topIncomeItems} maxY={maxYIncome} baseCur={baseCur} />
         </div>
       )}
 
       {showExpenses ? (
         <BucketCards
-          title={`صناديق المصاريف (${(state.expenseBuckets ?? []).length})`}
+          title={`تصنيفات المصاريف (${(state.expenseBuckets ?? []).length})`}
           baseCur={baseCur}
           buckets={state.expenseBuckets ?? []}
           totalsByBucket={expenseTotalsByBucket}
@@ -859,7 +859,7 @@ if (sbBuckets.length === 0) {
         />
       ) : (
         <BucketCards
-          title={`صناديق الدخل (${(state.incomeBuckets ?? []).length})`}
+          title={`تصنيفات الدخل (${(state.incomeBuckets ?? []).length})`}
           baseCur={baseCur}
           buckets={state.incomeBuckets ?? []}
           totalsByBucket={incomeTotalsByBucket}

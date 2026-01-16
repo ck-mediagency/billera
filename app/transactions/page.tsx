@@ -1176,7 +1176,7 @@ export default function TransactionsArchivePage() {
       {/* Breakdown */}
       <section style={{ ...CARD, marginTop: 12, padding: 14 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <div style={{ fontWeight: 900, fontSize: 18 }}>تفصيل الصناديق ({selectedMonthKey})</div>
+          <div style={{ fontWeight: 900, fontSize: 18 }}>تفصيل التصنيفات ({selectedMonthKey})</div>
           <div className="text-muted" style={{ fontSize: 12, fontWeight: 900 }}>
             هذا الشهر
           </div>
@@ -1225,7 +1225,7 @@ export default function TransactionsArchivePage() {
                   </div>
                 );
               })}
-              {breakdownBoth.expense.items.length === 0 && <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.45)" }}>لا يوجد صناديق صرف .</div>}
+              {breakdownBoth.expense.items.length === 0 && <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.45)" }}>لا يوجد تصنيفات صرف .</div>}
             </div>
           </div>
 
@@ -1271,7 +1271,7 @@ export default function TransactionsArchivePage() {
                   </div>
                 );
               })}
-              {breakdownBoth.income.items.length === 0 && <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.45)" }}>لا يوجد صناديق دخل  .</div>}
+              {breakdownBoth.income.items.length === 0 && <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(0,0,0,0.45)" }}>لا يوجد تصنيفات دخل  .</div>}
             </div>
           </div>
         </div>
@@ -1280,7 +1280,7 @@ export default function TransactionsArchivePage() {
       {/* ✅ العمليات + الفلاتر */}
       <section style={{ ...CARD, marginTop: 12, padding: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-          <div style={{ fontWeight: 900, fontSize: 18 }}>
+          <div style={{ fontWeight: 900, fontSize: 16 }}>
             العمليات ({monthTxsFinal.length}/{monthTxsFiltered.length}) — {tab === "income" ? "دخل" : "صرف"}
           </div>
 

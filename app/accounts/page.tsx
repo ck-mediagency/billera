@@ -360,7 +360,7 @@ if (sbAccounts.length === 0) {
         setSbLoading(false);
       } catch (e: any) {
         if (!alive) return;
-        setSbError(e?.message || "فشل تحميل الحسابات من Supabase");
+        setSbError(e?.message || "فشل تحميل المحفظات من Supabase");
         setSbLoading(false);
       }
     }
@@ -488,10 +488,10 @@ if (sbAccounts.length === 0) {
   async function deleteAccount(id: string) {
     const hasTx = (state.txs ?? []).some((t) => t.accountId === id);
     if (hasTx) {
-      alert("لا يمكن حذف الحساب لأنه مرتبط بعمليات. احذف العمليات أولًا أو انقلها لحساب آخر.");
+      alert("لا يمكن حذف المحفظة لأنها مرتبطة بعمليات. احذف العمليات أولًا أو انقلها محفظة أخرى.");
       return;
     }
-    if (!confirm("حذف الحساب؟")) return;
+    if (!confirm("حذف المحفظة")) return;
 
     const { data: sessionData } = await supabase.auth.getSession();
     const session = sessionData.session;
@@ -526,13 +526,13 @@ if (sbAccounts.length === 0) {
 
       <header style={{ marginTop: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: 0.2, color: "#000" }}>الحسابات</div>
+          <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: 0.2, color: "#000" }}>المحفظات</div>
           <div style={{ fontSize: 12, marginTop: 4, color: "rgba(0,0,0,0.65)" }}>
-            رصيد كل حساب بعملة الحساب نفسها · العملة الأساسية: {baseCur}
+            رصيد كل محفظة بعملة المحفظة نفسها · العملة الأساسية: {baseCur}
           </div>
 
           {sbLoading ? (
-            <div style={{ fontSize: 12, marginTop: 6, color: "rgba(0,0,0,0.55)", fontWeight: 800 }}>جاري تحميل الحسابات…</div>
+            <div style={{ fontSize: 12, marginTop: 6, color: "rgba(0,0,0,0.55)", fontWeight: 800 }}>جاري تحميل المحفظات</div>
           ) : sbError ? (
             <div style={{ fontSize: 12, marginTop: 6, color: "rgba(180,0,0,0.85)", fontWeight: 900 }}>{sbError}</div>
           ) : null}
@@ -558,7 +558,7 @@ if (sbAccounts.length === 0) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 12, color: "rgba(0,0,0,0.65)" }}>نظرة عامة</div>
-            <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900, lineHeight: 1.1, color: "#000" }}>{totalAccounts} حساب</div>
+            <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900, lineHeight: 1.1, color: "#000" }}>{totalAccounts} محفظة</div>
             <div style={{ fontSize: 12, marginTop: 6, lineHeight: 1.3, color: "rgba(0,0,0,0.65)" }}>
               العملات المستخدمة: {usedCurrencies.length ? usedCurrencies.join(" · ") : "—"}
             </div>
@@ -585,12 +585,12 @@ if (sbAccounts.length === 0) {
 
       <section style={{ ...CARD_STYLE, marginTop: 12, padding: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-          <div style={{ fontWeight: 900, color: "#000" }}>قائمة الحسابات</div>
+          <div style={{ fontWeight: 900, color: "#000" }}>قائمة المحفظات</div>
           <div style={{ fontSize: 12, color: "rgba(0,0,0,0.65)" }}>({totalAccounts})</div>
         </div>
 
         {totalAccounts === 0 ? (
-          <div style={{ marginTop: 12, fontSize: 12, color: "rgba(0,0,0,0.65)" }}>لا يوجد حسابات بعد. اضغط “إضافة”.</div>
+          <div style={{ marginTop: 12, fontSize: 12, color: "rgba(0,0,0,0.65)" }}>لا يوجد محفظة بعد. اضغط “إضافة”.</div>
         ) : (
           <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
             {(state.accounts ?? []).map((a) => {
@@ -672,10 +672,10 @@ if (sbAccounts.length === 0) {
         )}
       </section>
 
-      <Modal open={openAdd} title={editId ? "تعديل حساب" : "إضافة حساب"} onClose={() => setOpenAdd(false)}>
+      <Modal open={openAdd} title={editId ? "تعديل محفظة" : "إضافة محفظة"} onClose={() => setOpenAdd(false)}>
         <div style={{ display: "grid", gap: 10 }}>
           <div>
-            <div style={{ fontSize: 12, marginBottom: 6, color: "rgba(0,0,0,0.65)" }}>اسم الحساب</div>
+            <div style={{ fontSize: 12, marginBottom: 6, color: "rgba(0,0,0,0.65)" }}>اسم المحفظة</div>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
