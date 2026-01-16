@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import type { AppState } from "@/lib/types";
-import { loadState, saveState } from "@/lib/storage";
+import { APPSTATE_CHANGED_EVENT, loadState, saveState } from "@/lib/storage";
 import { IMPORTANT_CURRENCIES, normalizeCur, getAutoRatesToUSD } from "@/lib/fx";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+const [userId, setUserId] = useState<string | null>(null);
+
 
 /** ✅ روابط صاحب التطبيق (عدّلها أنت فقط) */
 const OWNER_SOCIAL_LINKS = {
@@ -398,58 +400,69 @@ export default function SettingsPage() {
   useOutsideClick([curBtnRef as any, curPanelRef as any], () => setCurOpen(false), curOpen);
 
   useEffect(() => {
-    // ✅ keep local app state (accounts/txs/...etc) from localStorage
-    const refreshLocal = () => {
-      const s = loadState() as ExtendedState | null;
-      if (s) {
-        const ib = (s as any).incomeBreakdown as IncomeBreakdownState | undefined;
+  // ✅ keep local app state (accounts/txs/...etc) from localStorage
+  const refreshLocal = () => {
+    const s = loadState(userId) as ExtendedState | null; // ✅ صار حسب userId
+    if (s) {
+      const ib = (s as any).incomeBreakdown as IncomeBreakdownState | undefined;
 
-        setState({
-          ...s,
-          incomeBuckets: s.incomeBuckets ?? [],
-          expenseBuckets: s.expenseBuckets ?? [],
-          lang: (s as any).lang ?? "ar",
-          monthlyIncomeTarget:
-            Number.isFinite((s as any).monthlyIncomeTarget) && (s as any).monthlyIncomeTarget >= 0
-              ? Number((s as any).monthlyIncomeTarget)
-              : 3000,
-          profile: {
-            ...(defaultState().profile as any),
-            ...(s.profile ?? {}),
-          },
-          fxRatesToUSD: s.fxRatesToUSD,
-          fxUpdatedAt: s.fxUpdatedAt,
-          fxSource: s.fxSource,
-          incomeBreakdown: {
-            ...(defaultState().incomeBreakdown as IncomeBreakdownState),
-            ...(ib ?? {}),
-            monthlyIncome: Number.isFinite(ib?.monthlyIncome as any) ? Number(ib?.monthlyIncome) : (defaultState().incomeBreakdown as any).monthlyIncome,
-            currency: normalizeCur((ib?.currency as any) || (defaultState().incomeBreakdown as any).currency || "USD"),
-            items: Array.isArray(ib?.items) ? ib!.items : ((defaultState().incomeBreakdown as any).items ?? []),
-          },
-        });
-      }
-    };
+      setState({
+        ...s,
+        incomeBuckets: s.incomeBuckets ?? [],
+        expenseBuckets: s.expenseBuckets ?? [],
+        lang: (s as any).lang ?? "ar",
+        monthlyIncomeTarget:
+          Number.isFinite((s as any).monthlyIncomeTarget) && (s as any).monthlyIncomeTarget >= 0
+            ? Number((s as any).monthlyIncomeTarget)
+            : 3000,
+        profile: {
+          ...(defaultState().profile as any),
+          ...(s.profile ?? {}),
+        },
+        fxRatesToUSD: s.fxRatesToUSD,
+        fxUpdatedAt: s.fxUpdatedAt,
+        fxSource: s.fxSource,
+        incomeBreakdown: {
+          ...(defaultState().incomeBreakdown as IncomeBreakdownState),
+          ...(ib ?? {}),
+          monthlyIncome: Number.isFinite(ib?.monthlyIncome as any) ? Number(ib?.monthlyIncome) : (defaultState().incomeBreakdown as any).monthlyIncome,
+          currency: normalizeCur((ib?.currency as any) || (defaultState().incomeBreakdown as any).currency || "USD"),
+          items: Array.isArray(ib?.items) ? ib!.items : ((defaultState().incomeBreakdown as any).items ?? []),
+        },
+      });
+    }
+  };
 
-    refreshLocal();
-    setHydrated(true);
+  refreshLocal();
+  setHydrated(true);
 
-    window.addEventListener("focus", refreshLocal);
-    const onVis = () => {
-      if (document.visibilityState === "visible") refreshLocal();
-    };
-    document.addEventListener("visibilitychange", onVis);
+  // ✅ 1) لما يصير حفظ بأي صفحة (بنفس التبويب)
+  window.addEventListener(APPSTATE_CHANGED_EVENT, refreshLocal);
 
-    return () => {
-      window.removeEventListener("focus", refreshLocal);
-      document.removeEventListener("visibilitychange", onVis);
-    };
-  }, []);
+  // ✅ 2) بين التبويبات
+  window.addEventListener("storage", refreshLocal);
+
+  // ✅ 3) احتياط: focus/visibility
+  window.addEventListener("focus", refreshLocal);
+  const onVis = () => {
+    if (document.visibilityState === "visible") refreshLocal();
+  };
+  document.addEventListener("visibilitychange", onVis);
+
+  return () => {
+    window.removeEventListener(APPSTATE_CHANGED_EVENT, refreshLocal);
+    window.removeEventListener("storage", refreshLocal);
+    window.removeEventListener("focus", refreshLocal);
+    document.removeEventListener("visibilitychange", onVis);
+  };
+}, [userId]);
+
 
   useEffect(() => {
-    if (!hydrated) return;
-    saveState(state as any);
-  }, [state, hydrated]);
+  if (!hydrated) return;
+  saveState(state as any, userId);
+}, [state, hydrated, userId]);
+
 
   // ✅ auto refresh FX on mount (with cache)
   useEffect(() => {
@@ -492,6 +505,8 @@ export default function SettingsPage() {
       }
 
       const userId = session.user.id;
+      setUserId(userId); // ✅ حتى localStorage يصير مربوط بالمستخدم
+
 
       const [pRes, sRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
@@ -634,6 +649,14 @@ export default function SettingsPage() {
     );
     setEditPrefs(false);
     setCurOpen(false);
+
+    // ✅ مزامنة فورية للـ local state حتى كل الصفحات تشوف العملة الجديدة فوراً
+setState((prev) => ({
+  ...prev,
+  baseCurrency: normalizeCur(baseCurrencySB),
+  monthlyIncomeTarget: Math.max(0, Math.round(Number(monthlyIncomeTargetSB || 0))),
+}));
+
   }
 
   function setBaseCurrencySBAndClose(c: string) {
