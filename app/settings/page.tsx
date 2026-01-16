@@ -390,7 +390,7 @@ const [userId, setUserId] = useState<string | null>(null);
   const [avatarDataUrl, setAvatarDataUrl] = useState("");
 
   const [monthlyIncomeTargetSB, setMonthlyIncomeTargetSB] = useState(3000);
-  const [baseCurrencySB, setBaseCurrencySB] = useState("USD");
+  const [baseCurrencySB, setBaseCurrencySB] = useState("");
 
   const [curOpen, setCurOpen] = useState(false);
   const curBtnRef = useRef<HTMLButtonElement>(null);
@@ -465,8 +465,10 @@ const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
   if (!hydrated) return;
-    if (!userId) return; // ✅ لا تحفظ على guest
-    ignoreNextStorageEventRef.current = true;
+  if (!userId) return; // ✅ لا تحفظ على guest
+  if (sbLoading) return;          // ✅ لا تحفظ قبل ما يجي الإعدادات من Supabase
+  if (!sbSettings) return;        // ✅ تأكيد إضافي
+  ignoreNextStorageEventRef.current = true;
 
   saveState(state as any, userId);
 }, [state, hydrated, userId]);
@@ -688,8 +690,7 @@ setState((prev) => ({
   const avatar = avatarDataUrl || "";
 
     // ✅ لا نعرض UI ولا نعمل أي شيء قبل ما يجي userId (حتى ما يصير USD ثم EUR)
-  if (!userId) {
-    return (
+if (!userId || sbLoading || !sbSettings || !sbProfile) {    return (
       <main
         dir="rtl"
         style={{
