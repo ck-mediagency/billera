@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import BottomNav from "@/components/BottomNav";
 import type { AppState } from "@/lib/types";
 import { loadState, APPSTATE_CHANGED_EVENT } from "@/lib/storage";
-import { normalizeCur, txValueInBase, roundMoney } from "@/lib/fx";
+import { normalizeCur, txValueInBase, roundMoney, ratesFromState } from "@/lib/fx";
 import { supabase } from "@/lib/supabaseClient";
 import { useRef } from "react";
 
@@ -380,6 +380,7 @@ useEffect(() => {
   }
 
   const refreshLocal = () => {
+    
     const s = loadState(localUserId) as ExtendedState | null;
     if (s) {
       setState({
@@ -395,6 +396,8 @@ useEffect(() => {
   };
 
   refreshLocal();
+  setHydrated(true);
+
 
   window.addEventListener(APPSTATE_CHANGED_EVENT, refreshLocal);
   const onVis = () => {
@@ -415,6 +418,8 @@ useEffect(() => {
   const baseCur = normalizeCur(state.baseCurrency || "USD");
   const today = todayISO();
   const thisMonthKey = monthKeyFromISO(today);
+  const rates = useMemo(() => ratesFromState(state as any), [state.baseCurrency, (state as any).fxRatesToUSD]);
+
 
   
 
@@ -571,14 +576,14 @@ if (sbBuckets.length === 0) {
       if (!t.dateISO) continue;
       if (monthKeyFromISO(t.dateISO) !== thisMonthKey) continue;
 
-      const v =  txValueInBase(state as any, t as any);
+const v = txValueInBase(t as any, baseCur, rates);
       if (t.kind === "income") income += v;
       else expense += v;
     }
 
 return { income: roundMoney(income), expense: roundMoney(expense) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.txs, thisMonthKey, baseCur]);
+}, [state.txs, thisMonthKey, baseCur, rates]);
 
   const monthIncome = monthTotals.income;
 
@@ -594,12 +599,12 @@ return { income: roundMoney(income), expense: roundMoney(expense) };
       const bid = (t as any).bucketId as string | undefined;
       if (!bid) continue;
 
-      const v =  txValueInBase(state as any, t as any);
+const v = txValueInBase(t as any, baseCur, rates);
       map.set(bid, (map.get(bid) || 0) + v);
     }
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.txs, state.incomeBuckets, thisMonthKey, baseCur]);
+}, [state.txs, state.incomeBuckets, thisMonthKey, baseCur, rates]);
 
   const expenseTotalsByBucket = useMemo(() => {
     const map = new Map<string, number>();
@@ -613,12 +618,12 @@ return { income: roundMoney(income), expense: roundMoney(expense) };
       const bid = (t as any).bucketId as string | undefined;
       if (!bid) continue;
 
-      const v =  txValueInBase(state as any, t as any);
+const v = txValueInBase(t as any, baseCur, rates);
       map.set(bid, (map.get(bid) || 0) + v);
     }
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.txs, state.expenseBuckets, thisMonthKey, baseCur]);
+}, [state.txs, state.expenseBuckets, thisMonthKey, baseCur, rates]);
 
   const topExpenseItems = useMemo(() => {
     const buckets = state.expenseBuckets ?? [];

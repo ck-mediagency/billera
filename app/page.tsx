@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import BottomNav from "@/components/BottomNav";
 import type { AppState } from "@/lib/types";
 import { loadState, saveState } from "@/lib/storage";
-import { normalizeCur, txValueInBase, roundMoney } from "@/lib/fx";
+import { normalizeCur, ratesFromState, txValueInBase, roundMoney } from "@/lib/fx";
 import { supabase } from "@/lib/supabaseClient";
 
 type AccountRow = {
@@ -264,7 +264,7 @@ const onVis = () => {
     if (!t.dateISO) continue;
     if (monthKeyFromISO(t.dateISO) !== thisMonthKey) continue;
 
-    const v = txValueInBase(state as any, t as any); // ✅ التحويل الصحيح لأي عملة
+const v = txValueInBase(t as any, baseCur, ratesFromState(state as any));
 
     if (t.kind === "income") income += v;
     else expense += v;
@@ -275,7 +275,7 @@ const onVis = () => {
     expense: roundMoney(expense),
     net: roundMoney(income - expense),
   };
-}, [state, thisMonthKey]);
+}, [state.txs, state.baseCurrency, (state as any).fxRatesToUSD, thisMonthKey]);
 
 
   const spendingPercent = useMemo(() => {
