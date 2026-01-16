@@ -327,7 +327,7 @@ function BucketCards({
                       padding: "10px 12px",
                       fontWeight: 900,
                       border: "none",
-                      background: "rgba(210,60,60,0.9)",
+                      background: "#d23c3ce6",
                       color: "white",
                       cursor: "pointer",
                     }}
