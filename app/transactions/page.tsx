@@ -1200,7 +1200,7 @@ export default function TransactionsArchivePage() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ width: 10, height: 10, borderRadius: 999, background: "rgba(50,194,182,0.85)", boxShadow: "0 6px 14px rgba(50,194,182,0.25)" }} />
-                <div style={{ fontWeight: 900, fontSize: 20, color: "rgba(0,0,0,0.88)" }}>صرف</div>
+                <div style={{ fontWeight: 900, fontSize: 18, color: "rgba(0,0,0,0.88)" }}>صرف</div>
               </div>
 
               <div style={{ fontWeight: 900, fontSize: 16, color: "rgba(0,0,0,0.85)" }}>
@@ -1246,7 +1246,7 @@ export default function TransactionsArchivePage() {
             >
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ width: 10, height: 10, borderRadius: 999, background: "rgba(50,194,182,0.85)", boxShadow: "0 6px 14px rgba(50,194,182,0.25)" }} />
-                <div style={{ fontWeight: 900, fontSize: 20, color: "rgba(0,0,0,0.88)" }}>دخل</div>
+                <div style={{ fontWeight: 900, fontSize: 18, color: "rgba(0,0,0,0.88)" }}>دخل</div>
               </div>
 
               <div style={{ fontWeight: 900, fontSize: 16, color: "rgba(0,0,0,0.85)" }}>
