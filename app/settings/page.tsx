@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 /** ✅ روابط صاحب التطبيق (عدّلها أنت فقط) */
 const OWNER_SOCIAL_LINKS = {
   instagram: "https://www.instagram.com/ibrahim.jab99/",
-  youtube: "https://www.youtube.com/@ibrahimjaber900",
+  youtube: "https://www.youtube.com/@ibrahim.jab99",
   tiktok: "https://www.tiktok.com/@ibrahim.jab99",
   facebook: "https://www.facebook.com/ibrahim.jaber.320943",
 } as const;
@@ -325,8 +325,8 @@ function SocialFooter({ items }: { items: { label: string; kind: "ig" | "yt" | "
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 2, textAlign: "right" }}>
-          <div style={{ fontWeight: 900, fontSize: 12, color: "#000" }}>تابعني</div>
-          <div style={{ fontWeight: 800, fontSize: 11, color: "rgba(0,0,0,0.55)" }}>حسابات صاحب التطبيق</div>
+          <div style={{ fontWeight: 900, fontSize: 12, color: "#000" }}>تابعنا</div>
+          <div style={{ fontWeight: 800, fontSize: 11, color: "rgba(0,0,0,0.55)" }}> شاركنا رأيك بتعليق </div>
         </div>
 
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>

@@ -117,7 +117,7 @@ export default function BottomNav() {
   const is = (p: string) => pathname === p || pathname.startsWith(p + "/");
 
   // ✅ أخفي البوتم بهالصفحات فقط
-  const HIDE_ON = ["/accounts", "/buckets","/add"];
+  const HIDE_ON = ["/accounts", "/buckets","/add","/settings" ];
   if (HIDE_ON.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return null;
   }
