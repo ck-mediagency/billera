@@ -152,7 +152,7 @@ export default function BottomNav() {
         <Item href="/transactions" label="العمليات" icon={<IconTransactions />} active={is("/transactions")} />
         <Item href="/" label="الرئيسية" icon={<IconHome />} active={is("/")} />
         <Item href="/buckets" label="التصنيفات" icon={<IconCategories />} active={is("/buckets")} />
-        <Item href="/accounts" label="المحافظ" icon={<IconWallets />} active={is("/accounts")} />
+        <Item href="/accounts" label="المحفظات" icon={<IconWallets />} active={is("/accounts")} />
       </nav>
     </div>
   );
